@@ -26,6 +26,8 @@ ICONV_CMD=iconv
 
 SUCCESS_MESSAGES="^(Das SSL-Zertifikat wurde erfolgreich importiert|Import of the SSL certificate was successful|El certificado SSL se ha importado correctamente|Le certificat SSL a été importé|Il certificato SSL è stato importato|Import certyfikatu SSL został pomyślnie zakończony)\.$"
 
+DEBUG_OUTPUT=/tmp/fritzbox.debug
+
 function usage {
   echo "Usage: $0 [-b baseurl] [-u username] [-p password] [-c certpath]" >&2
   exit 64
@@ -120,9 +122,9 @@ fi
 
 md5hash="$(echo -n ${challenge}-${password} | ${ICONV_CMD} -f ASCII -t UTF16LE | ${md5cmd} | awk '{print $1}')"
 
-sid="$(${CURL_CMD} -sS "${baseurl}/login_sid.lua?username=${username}&response=${challenge}-${md5hash}" | sed -ne 's/^.*<SID>\([0-9a-f][0-9a-f]*\)<\/SID>.*$/\1/p')"
+sid="$(${CURL_CMD} -sS "${baseurl}/login_sid.lua?username=${username}&response=${challenge}-${md5hash}" | tee ${DEBUG_OUTPUT} | sed -ne 's/^.*<SID>\([0-9a-f][0-9a-f]*\)<\/SID>.*$/\1/p')"
 if [ -z "${sid}" -o "${sid}" = "0000000000000000" ]; then
-  error "Login failed."
+  error "Login failed. sid=${sid} Have a look at ${DEBUG_OUTPUT}"
 fi
 
 certbundle=$(cat "${certpath}/fullchain.pem" "${certpath}/privkey.pem" | grep -v '^$')
