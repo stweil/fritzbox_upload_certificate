@@ -146,7 +146,7 @@ ${certbundle}
 EOD
 
 # upload the certificate to the box
-${CURL_CMD} -sS -X POST ${baseurl}/cgi-bin/firmwarecfg -H "Content-type: multipart/form-data boundary=${boundary}" --data-binary "@${request_file}" | grep -qE "${SUCCESS_MESSAGES}"
+${CURL_CMD} -sS -X POST ${baseurl}/cgi-bin/firmwarecfg -H "Content-type: multipart/form-data boundary=${boundary}" --data-binary "@${request_file}" | tee ${DEBUG_OUTPUT} | grep -qE "${SUCCESS_MESSAGES}"
 if [ $? -ne 0 ]; then
-  error "Could not import certificate."
+  error "Could not import certificate. Have a look at ${DEBUG_OUTPUT}"
 fi
